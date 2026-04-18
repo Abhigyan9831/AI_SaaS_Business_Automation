@@ -144,6 +144,9 @@ kubectl get nodes
 kubectl get nodes
 # Expected: command not found
 ```
+**Screenshot:**
+
+![Destroy-cluster](./Destroy.png)
 
 ---
 
@@ -206,6 +209,9 @@ kubectl get pods
 kubectl get svc
 curl http://<YOUR_VM_IP>:30080
 ```
+**Screenshot:**
+
+![Complete-verify](./complete.png)
 
 ---
 
