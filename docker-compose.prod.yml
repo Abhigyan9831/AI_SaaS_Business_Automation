@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: pont-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-pont_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-pont_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pont_admin} -d ${DB_NAME:-pont_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pont-redis
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ${DOCKERHUB_USERNAME}/pont-backend:latest
+    container_name: pont-backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-pont_admin}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-pont_db}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+
+  worker:
+    image: ${DOCKERHUB_USERNAME}/pont-worker:latest
+    container_name: pont-worker
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-pont_admin}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-pont_db}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+
+volumes:
+  postgres_data:
+  redis_data:

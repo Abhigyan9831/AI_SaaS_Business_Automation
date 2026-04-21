@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: pont-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: pont_admin
+      POSTGRES_PASSWORD: pont_password
+      POSTGRES_DB: pont_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    image: redis:7
+    container_name: pont-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    container_name: pont-backend
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgres://pont_admin:pont_password@postgres:5432/pont_db
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: super_secret_key
+    ports:
+      - "3001:3001"
+
+  worker:
+    build: ./worker
+    container_name: pont-worker
+    restart: always
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      DATABASE_URL: postgres://pont_admin:pont_password@postgres:5432/pont_db
+      REDIS_URL: redis://redis:6379
+
+  frontend:
+    build: ./frontend
+    container_name: pont-frontend
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
