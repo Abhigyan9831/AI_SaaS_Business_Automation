@@ -10,6 +10,15 @@ export const api = {
     return res.json();
   },
 
+  async login(data: any) {
+    const res = await fetch(`${API_URL}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
   async createTask(token: string, type: string, payload: any) {
     const res = await fetch(`${API_URL}/api/tasks`, {
       method: 'POST',

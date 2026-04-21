@@ -10,6 +10,7 @@ import IORedis from 'ioredis';
 import { TenantService } from './services/tenant.service';
 import { AuthService } from './services/auth.service';
 import { QuotaService } from './services/quota.service';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -74,10 +75,11 @@ app.post('/api/register', async (req, res) => {
     // 1. Create Tenant & Default Quota
     const tenant = await tenantService.createTenant(companyName);
     
-    // 2. Create User (Simplified for demo)
+    // 2. Create User with hashed password
+    const hashedPassword = await bcrypt.hash(password, 10);
     const userRes = await pool.query(
       'INSERT INTO users (tenant_id, email, password_hash, full_name) VALUES ($1, $2, $3, $4) RETURNING *',
-      [tenant.id, email, password, companyName] // Use real hash in prod
+      [tenant.id, email, hashedPassword, companyName]
     );
     const user = userRes.rows[0];
 
@@ -89,6 +91,27 @@ app.post('/api/register', async (req, res) => {
     });
 
     res.status(201).json({ tenant, user, token });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
+    
+    if (user && await bcrypt.compare(password, user.password_hash)) {
+      const token = authService.generateToken({
+        userId: user.id,
+        tenantId: user.tenant_id,
+        role: user.role
+      });
+      res.json({ user, token });
+    } else {
+      res.status(401).json({ error: 'Invalid email or password' });
+    }
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
