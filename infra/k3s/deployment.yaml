@@ -3,6 +3,94 @@ kind: Namespace
 metadata:
   name: pont-ai
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: pont-ai
+data:
+  init.sql: |
+    -- Pont AI SaaS Production Database Initialization
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    CREATE EXTENSION IF NOT EXISTS "vector";
+    CREATE TABLE tenants (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        company_name TEXT NOT NULL,
+        industry TEXT,
+        org_size TEXT,
+        plan_id TEXT NOT NULL DEFAULT 'entry_999',
+        status TEXT NOT NULL DEFAULT 'trial' CHECK (status IN ('trial', 'active', 'frozen', 'deleted')),
+        trial_ends_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+    CREATE TABLE users (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        email TEXT UNIQUE NOT NULL,
+        phone TEXT,
+        password_hash TEXT NOT NULL,
+        full_name TEXT,
+        role TEXT NOT NULL DEFAULT 'admin',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+    CREATE TABLE subscriptions (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        plan_id TEXT NOT NULL,
+        period TEXT NOT NULL CHECK (period IN ('monthly', 'quarterly', 'annual')),
+        start_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        end_at TIMESTAMP WITH TIME ZONE,
+        amount DECIMAL(12, 2) NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'past_due', 'canceled'))
+    );
+    CREATE TABLE orders (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        amount DECIMAL(12, 2) NOT NULL,
+        payment_method TEXT NOT NULL,
+        paid_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        invoice_id TEXT UNIQUE
+    );
+    CREATE TABLE quotas (
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        resource_type TEXT NOT NULL,
+        period TEXT NOT NULL DEFAULT 'monthly',
+        total INTEGER NOT NULL DEFAULT 0,
+        used INTEGER NOT NULL DEFAULT 0,
+        overage_billed INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (tenant_id, resource_type)
+    );
+    CREATE TABLE tasks (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        type TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+        payload JSONB DEFAULT '{}',
+        result JSONB DEFAULT '{}',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        completed_at TIMESTAMP WITH TIME ZONE
+    );
+    CREATE TABLE kb_embeddings (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+        metadata JSONB DEFAULT '{}',
+        embedding VECTOR(1536),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+    ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE quotas ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE kb_embeddings ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY tenant_isolation_policy ON users FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+    CREATE POLICY tenant_isolation_policy ON subscriptions FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+    CREATE POLICY tenant_isolation_policy ON orders FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+    CREATE POLICY tenant_isolation_policy ON quotas FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+    CREATE POLICY tenant_isolation_policy ON tasks FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+    CREATE POLICY tenant_isolation_policy ON kb_embeddings FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,6 +121,13 @@ spec:
               key: password
         - name: POSTGRES_DB
           value: SaaS_DB
+        volumeMounts:
+        - name: init-script
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: init-script
+        configMap:
+          name: postgres-init-script
 ---
 apiVersion: v1
 kind: Service
