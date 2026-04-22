@@ -1,8 +1,9 @@
 import { Pool } from 'pg';
 import cron from 'node-cron';
+import { MailService } from './mail.service';
 
 export class StateService {
-  constructor(private pool: Pool) {}
+  constructor(private pool: Pool, private mailService: MailService) {}
 
   init() {
     // Schedule daily status check at midnight
@@ -17,15 +18,28 @@ export class StateService {
     try {
       await client.query('BEGIN');
 
-      // 1. [Trial] -> [Frozen] if no pay in 30d
+      // 📩 1. Send Reminders for Trial Ending (3 days left)
+      const reminders = await client.query(`
+        SELECT t.id, u.email, t.company_name, t.trial_ends_at
+        FROM tenants t
+        JOIN users u ON t.id = u.tenant_id
+        WHERE t.status = 'trial' 
+        AND t.trial_ends_at BETWEEN NOW() AND (NOW() + interval '3 days')
+        AND u.role = 'admin'
+      `);
+
+      for (const row of reminders.rows) {
+        await this.mailService.sendTrialEndingReminder(row.email, 3);
+      }
+
+      // 2. [Trial] -> [Frozen] if no pay in 30d
       await client.query(`
         UPDATE tenants 
         SET status = 'frozen' 
         WHERE status = 'trial' AND trial_ends_at < NOW()
       `);
 
-      // 2. [Active] -> [Frozen] if 3d past due (arrears)
-      // Note: Arrears logic depends on subscription table status
+      // 3. [Active] -> [Frozen] if 3d past due (arrears)
       await client.query(`
         UPDATE tenants 
         SET status = 'frozen' 
@@ -36,7 +50,7 @@ export class StateService {
         AND subscriptions.end_at < (NOW() - interval '3 days')
       `);
 
-      // 3. [Frozen] -> [Deleted] after 60d (Trial) or 90d (Active)
+      // 4. [Frozen] -> [Deleted] after 90d
       await client.query(`
         UPDATE tenants 
         SET status = 'deleted' 
