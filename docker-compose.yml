@@ -50,7 +50,7 @@ services:
     container_name: pont-frontend
     restart: always
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:3001}
     ports:
       - "3000:3000"
 

@@ -2,9 +2,21 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api";
-import { Zap, Loader2, AlertCircle } from "lucide-react";
+import { ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+
+const inputStyle: React.CSSProperties = {
+  width: "100%", fontFamily: "inherit",
+  height: 48, padding: "0 var(--space-lg)",
+  borderRadius: "var(--shape-corner-md)",
+  border: "1px solid var(--theme-outline-outline-variant)",
+  background: "var(--palette-grey-10)",
+  fontSize: "var(--base-size)", lineHeight: "1",
+  color: "var(--theme-surface-on-surface)",
+  outline: "none", transition: "border-color 0.2s",
+};
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,82 +29,120 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
       const res = await api.login({ email, password });
-      if (res.error) {
-        setError(res.error);
+      if (res.error) { 
+        setError(res.error); 
       } else if (res.token) {
         localStorage.setItem("pont_token", res.token);
         localStorage.setItem("pont_user", JSON.stringify(res.user));
-        router.push("/"); // Or dashboard if implemented
+        router.push("/dashboard");
       }
-    } catch (err) {
-      setError("Failed to connect to the server. Please check your API URL.");
-    } finally {
-      setLoading(false);
+    } catch { 
+      setError("Failed to connect to GEO control plane."); 
+    } finally { 
+      setLoading(false); 
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#060606] text-white flex items-center justify-center px-6">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Zap className="w-6 h-6 text-white fill-current" />
-            </div>
-            <span className="text-2xl font-bold tracking-tight">Pont AI</span>
-          </Link>
-          <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
-          <p className="text-muted-foreground text-sm">Sign in to your control plane</p>
-        </div>
+    <main style={{ minHeight: "100vh", background: "var(--theme-surface-surface)", color: "var(--theme-surface-on-surface)", display: "flex", flexDirection: "column" }}>
+      <div className="noise" />
+      
+      {/* Nav */}
+      <header style={{
+        height: "var(--nav-height)", borderBottom: "1px solid var(--theme-outline-outline-variant)",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 var(--page-margin)", zIndex: 10,
+      }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <span style={{
+            width: 28, height: 28, background: "var(--theme-surface-on-surface)",
+            borderRadius: "var(--shape-corner-sm)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 7L7 13L1 7L7 1Z" fill="white" /></svg>
+          </span>
+          <span className="call-to-action--nav" style={{ color: "var(--theme-surface-on-surface)" }}>PONT AI</span>
+        </Link>
+        <Link href="/signup" className="call-to-action--nav" style={{ color: "var(--theme-surface-on-surface-variant)" }}>
+          Create account
+        </Link>
+      </header>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          {error && (
-            <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-3">
-              <AlertCircle className="w-4 h-4" />
-              {error}
-            </div>
-          )}
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground ml-1">Email Address</label>
-            <input 
-              type="email" 
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-              placeholder="name@company.com"
-            />
+      {/* Body */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-6xl) var(--page-margin)" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
+          style={{ width: "100%", maxWidth: 440 }}
+        >
+          <div style={{ marginBottom: "var(--space-3xl)" }}>
+            <p className="caption" style={{ color: "var(--palette-grey-800)", marginBottom: "var(--space-sm)" }}>Secure Access</p>
+            <h1 className="heading-2" style={{ marginBottom: "var(--space-sm)" }}>Sign in</h1>
+            <p className="body-text" style={{ color: "var(--palette-grey-800)" }}>Access your PONT GEO console and AI workers.</p>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground ml-1">Password</label>
-            <input 
-              type="password" 
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-              placeholder="••••••••"
-            />
-          </div>
+          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "var(--space-lg)" }}>
+            {error && (
+              <div style={{
+                display: "flex", alignItems: "center", gap: "var(--space-sm)",
+                padding: "var(--space-md)", borderRadius: "var(--shape-corner-md)",
+                background: "rgba(213,0,0,0.06)", border: "1px solid rgba(213,0,0,0.15)",
+                color: "#d50000",
+              }}>
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <span className="caption">{error}</span>
+              </div>
+            )}
 
-          <button 
-            disabled={loading}
-            className="w-full py-4 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
-          </button>
-        </form>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}>
+              <label className="caption" style={{ color: "var(--palette-grey-800)", fontWeight: 450 }}>Work email</label>
+              <input type="email" required autoComplete="email" placeholder="name@company.com"
+                value={email} onChange={(e) => setEmail(e.target.value)}
+                style={inputStyle}
+                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--palette-grey-900)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--theme-outline-outline-variant)"; }}
+              />
+            </div>
 
-        <p className="text-center mt-8 text-sm text-muted-foreground">
-          Don't have an account?{" "}
-          <Link href="/" className="text-white font-bold hover:underline">Get Started</Link>
-        </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}>
+              <label className="caption" style={{ color: "var(--palette-grey-800)", fontWeight: 450 }}>Password</label>
+              <input type="password" required autoComplete="current-password" placeholder="••••••••"
+                value={password} onChange={(e) => setPassword(e.target.value)}
+                style={inputStyle}
+                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--palette-grey-900)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--theme-outline-outline-variant)"; }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "var(--space-sm)",
+                height: 44, borderRadius: "var(--shape-corner-rounded)",
+                background: "var(--theme-surface-on-surface)", color: "var(--palette-grey-0)",
+                border: "none", cursor: loading ? "wait" : "pointer", fontFamily: "inherit",
+                fontSize: "var(--cta-size)", fontWeight: 450, letterSpacing: "var(--cta-letter-spacing)",
+                opacity: loading ? 0.6 : 1, transition: "opacity 0.2s, background 0.2s",
+              }}
+            >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <>Sign in <ArrowRight size={16} /></>}
+            </button>
+          </form>
+
+          <p className="caption" style={{ textAlign: "center", marginTop: "var(--space-2xl)", color: "var(--palette-grey-800)" }}>
+            Need a GEO instance?{" "}
+            <Link href="/signup" style={{ color: "var(--theme-surface-on-surface)", fontWeight: 450 }}>Start free trial</Link>
+          </p>
+        </motion.div>
       </div>
+
+      <footer style={{ borderTop: "1px solid var(--theme-outline-outline-variant)", padding: "var(--space-xl) var(--page-margin)" }}>
+        <p className="caption" style={{ textAlign: "center", color: "var(--palette-grey-800)" }}>PONT AI © 2026 · Distributed AI Labor</p>
+      </footer>
     </main>
   );
 }

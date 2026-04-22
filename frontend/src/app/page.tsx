@@ -1,101 +1,149 @@
 "use client";
 
 import Onboarding from "@/components/Onboarding";
-import { Zap, Activity, Users, CreditCard, Search, Brain, FileText, Share2 } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
+const NAV_LINKS = [
+  { label: "GEO Engine",    href: "#" },
+  { label: "AI Reception", href: "#" },
+  { label: "Case Studies", href: "#" },
+  { label: "Pricing",      href: "/pricing" },
+];
+
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#060606] text-white selection:bg-primary/30">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-black/50 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white fill-current" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">Pont AI</span>
+    <main style={{ background: "var(--theme-surface-surface)", color: "var(--theme-surface-on-surface)", minHeight: "100vh" }}>
+      <div className="noise" />
+
+      {/* --- Navigation --- */}
+      <header style={{
+        position: "sticky", top: 0, zIndex: 100,
+        height: "var(--nav-height)",
+        borderBottom: "1px solid var(--theme-outline-outline-variant)",
+        background: "rgba(248,249,252,0.92)",
+        backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      }}>
+        <div className="container" style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          {/* Logo */}
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", flexShrink: 0 }}>
+            <span style={{
+              width: 28, height: 28, background: "var(--theme-surface-on-surface)",
+              borderRadius: "var(--shape-corner-sm)",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1L13 7L7 13L1 7L7 1Z" fill="white" />
+              </svg>
+            </span>
+            <span className="call-to-action--nav" style={{ color: "var(--theme-surface-on-surface)" }}>PONT AI</span>
           </Link>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="/docs" className="hover:text-white transition-colors">Documentation</Link>
-            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-            <Link href="/login" className="bg-white text-black px-4 py-1.5 rounded-full font-medium hover:bg-white/90 transition-all">
-              Sign In
+
+          {/* Centre links */}
+          <nav className="nav-links">
+            {NAV_LINKS.map((l) => (
+              <Link key={l.label} href={l.href} className="call-to-action--nav"
+                style={{ color: "var(--theme-surface-on-surface-variant)", transition: "color 0.2s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--palette-grey-1000)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--theme-surface-on-surface-variant)")}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* CTAs */}
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)", flexShrink: 0 }}>
+            <Link href="/login" className="call-to-action--nav nav-signin-label"
+              style={{ color: "var(--theme-surface-on-surface-variant)", transition: "color 0.2s" }}
+            >
+              Sign in
+            </Link>
+            <Link href="/signup" className="call-to-action--nav" style={{
+              display: "inline-flex", alignItems: "center", gap: "var(--space-xs)",
+              height: 36, padding: "0 var(--space-lg)",
+              borderRadius: "var(--shape-corner-rounded)",
+              background: "var(--theme-surface-on-surface)", color: "var(--palette-grey-0)",
+              textDecoration: "none", flexShrink: 0,
+            }}>
+              Try Free <ArrowUpRight size={14} />
             </Link>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* Hero Section / Onboarding */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-8"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span>
-            Cloud-Native v2.0 Live
-          </motion.div>
-          <h1 className="text-6xl md:text-7xl font-bold tracking-tighter mb-6">
-            Accelerate your AI <br />
-            <span className="gradient-text">Execution with Xia.</span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-12">
-            The multi-tenant control plane for distributed AI agents. Scalable, secure, and production-ready architecture designed for high-margin SaaS.
+      {/* --- Hero --- */}
+      <section className="container" style={{ paddingTop: "var(--space-6xl)", paddingBottom: "var(--space-6xl)" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, ease: [0.19, 1, 0.22, 1] }}
+        >
+          <p className="caption" style={{ color: "var(--palette-grey-800)", marginBottom: "var(--space-lg)" }}>
+            Generative Engine Optimization (GEO) · Trusted by 40+ Companies
           </p>
-        </div>
 
-        <Onboarding />
+          <h1 className="landing-main" style={{ marginBottom: "var(--space-2xl)" }}>
+            Get Recommended by<br />
+            <span className="second-line">ChatGPT & DeepSeek.</span>
+          </h1>
+
+          <div className="hero-sub-row" style={{ marginBottom: "var(--space-6xl)" }}>
+            <p className="body-text" style={{ color: "var(--palette-grey-800)", maxWidth: 540 }}>
+              The first GEO platform designed to dominate AI search results. 
+              Average <span style={{color: 'var(--theme-surface-on-surface)', fontWeight: 500}}>+527% AI referral traffic</span> and 
+              <span style={{color: 'var(--theme-surface-on-surface)', fontWeight: 500}}> +256% lead rate</span> for your business.
+            </p>
+            <Link href="/signup" className="call-to-action" style={{
+              display: "inline-flex", alignItems: "center", gap: "var(--space-sm)",
+              color: "var(--theme-surface-on-surface)", textDecoration: "none",
+              whiteSpace: "nowrap", transition: "gap 0.3s var(--ease-out-expo)",
+            }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.gap = "var(--space-xl)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.gap = "var(--space-sm)"; }}
+            >
+              Dominate AI Search <ArrowUpRight size={20} />
+            </Link>
+          </div>
+
+          <Onboarding />
+        </motion.div>
       </section>
 
-      {/* Xia Engine Details */}
-      <section className="py-24 px-6 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">The Xia Core Engine</h2>
-            <p className="text-muted-foreground">Continuous execution loop for high-scale AI automation.</p>
-          </div>
-          <div className="grid md:grid-cols-4 gap-8">
+      {/* --- Metrics --- */}
+      <section style={{ borderTop: "1px solid var(--theme-outline-outline-variant)" }}>
+        <div className="container" style={{ paddingTop: "var(--space-6xl)", paddingBottom: "var(--space-6xl)" }}>
+          <div className="metrics-grid">
             {[
-              { icon: Search, title: "Crawl", desc: "Intelligent data ingestion from any source." },
-              { icon: Brain, title: "Analyze", desc: "Context-aware processing with multi-model support." },
-              { icon: FileText, title: "Generate", desc: "High-quality content production at scale." },
-              { icon: Share2, title: "Publish", desc: "Automated distribution to integrated platforms." },
-            ].map((feature, i) => (
-              <div key={i} className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-primary/20 transition-all group">
-                <feature.icon className="w-8 h-8 text-primary mb-4 group-hover:scale-110 transition-transform" />
-                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.desc}</p>
+              { label: "AI Engines Tracked",  value: "10+"    },
+              { label: "Referral Growth",    value: "527%"   },
+              { label: "Lead Conversion",    value: "256%"   },
+            ].map((s) => (
+              <div key={s.label} style={{ paddingTop: "var(--space-xl)", borderTop: "1px solid var(--theme-outline-outline-variant)" }}>
+                <p className="caption" style={{ color: "var(--palette-grey-800)", marginBottom: "var(--space-sm)" }}>{s.label}</p>
+                <p className="heading-2">{s.value}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 border-t border-white/5 bg-white/[0.02]">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { label: 'Active Workers', value: '1,248', icon: Activity },
-            { label: 'Total Tasks', value: '48.2M', icon: Zap },
-            { label: 'Managed Tenants', value: '312', icon: Users },
-            { label: 'Cloud Savings', value: '82%', icon: CreditCard },
-          ].map((stat, i) => (
-            <div key={i} className="space-y-2">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <stat.icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{stat.label}</span>
-              </div>
-              <div className="text-3xl font-bold">{stat.value}</div>
+      {/* --- Footer --- */}
+      <footer style={{ borderTop: "1px solid var(--theme-outline-outline-variant)" }}>
+        <div className="container" style={{ paddingTop: "var(--space-2xl)", paddingBottom: "var(--space-2xl)" }}>
+          <div className="footer-row">
+            <span className="caption" style={{ color: "var(--palette-grey-800)" }}>PONT AI © 2026 · GEO for Digital Labor</span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2xl)" }}>
+              {["Privacy", "Terms", "Documentation", "Status"].map((l) => (
+                <Link key={l} href="#" className="caption"
+                  style={{ color: "var(--palette-grey-800)", textDecoration: "none" }}
+                >{l}</Link>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
-      </section>
+      </footer>
     </main>
   );
 }
