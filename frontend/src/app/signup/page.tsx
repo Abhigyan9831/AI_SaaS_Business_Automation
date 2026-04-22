@@ -51,7 +51,7 @@ export default function SignupPage() {
         window.location.href = "/dashboard"; 
       }
     }
-    catch { alert("Signup failed. Please try again."); }
+    catch (e: any) { alert("Signup failed: " + (e.message || "Please try again.")); }
     finally { setLoading(false); }
   };
 

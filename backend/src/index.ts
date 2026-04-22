@@ -108,13 +108,14 @@ app.post('/api/register', async (req, res) => {
     );
     const user = userRes.rows[0];
     
-    // 📩 Send Welcome Email
-    await mailService.sendWelcomeEmail(email, companyName);
+    // 📩 Send Welcome Email (fire-and-forget — never block registration)
+    mailService.sendWelcomeEmail(email, companyName).catch(e => console.error('[Mail] Welcome email failed:', e));
 
     const token = authService.generateToken({ userId: user.id, tenantId: tenant.id, role: user.role });
     res.status(201).json({ tenant, user, token });
   } catch (err: any) {
-    res.status(500).json({ error: 'Registration failed' });
+    console.error('[Register] Error:', err.message);
+    res.status(500).json({ error: err.message || 'Registration failed' });
   }
 });
 
