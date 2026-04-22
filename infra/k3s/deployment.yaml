@@ -205,6 +205,26 @@ spec:
           value: redis://redis:6379
         - name: JWT_SECRET
           value: super_secret_key
+        - name: SMTP_HOST
+          valueFrom:
+            secretKeyRef:
+              name: smtp-secret
+              key: host
+        - name: SMTP_PORT
+          valueFrom:
+            secretKeyRef:
+              name: smtp-secret
+              key: port
+        - name: SMTP_USER
+          valueFrom:
+            secretKeyRef:
+              name: smtp-secret
+              key: user
+        - name: SMTP_PASS
+          valueFrom:
+            secretKeyRef:
+              name: smtp-secret
+              key: pass
 ---
 apiVersion: v1
 kind: Service
