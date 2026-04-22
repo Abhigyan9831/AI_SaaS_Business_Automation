@@ -22,9 +22,16 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || 'Registration failed');
-    return json;
+    
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Registration failed');
+      return json;
+    } else {
+      const text = await res.text();
+      throw new Error(`Server returned non-JSON: ${text.substring(0, 100)}...`);
+    }
   },
 
   async login(data: any) {

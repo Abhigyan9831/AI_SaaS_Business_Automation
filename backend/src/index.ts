@@ -250,6 +250,10 @@ app.post('/api/webhooks/payment', express.raw({type: 'application/json'}), async
   res.sendStatus(200);
 });
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
 app.listen(port, () => {
   console.log(`PONT AI Control Plane running on port ${port}`);
 });
