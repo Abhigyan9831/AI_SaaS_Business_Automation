@@ -189,7 +189,8 @@ spec:
     spec:
       containers:
       - name: backend
-        image: ai_saas_business_automation-backend:latest
+        image: pont-backend:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3001
         env:
@@ -233,7 +234,8 @@ spec:
     spec:
       containers:
       - name: worker
-        image: ai_saas_business_automation-worker:latest
+        image: pont-worker:latest
+        imagePullPolicy: IfNotPresent
         env:
         - name: DATABASE_PASSWORD
           valueFrom:
