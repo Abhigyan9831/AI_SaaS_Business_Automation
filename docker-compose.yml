@@ -49,13 +49,18 @@ services:
       REDIS_URL: redis://redis:6379
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        BACKEND_URL: http://pont-backend:3001
     container_name: pont-frontend
     restart: always
     environment:
-      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:3001}
+      BACKEND_URL: http://pont-backend:3001
     ports:
       - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

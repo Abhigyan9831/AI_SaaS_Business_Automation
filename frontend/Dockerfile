@@ -5,6 +5,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+ARG BACKEND_URL=http://pont-backend:3001
+ENV BACKEND_URL=$BACKEND_URL
+
 COPY . .
 RUN npm run build
 
