@@ -189,7 +189,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: pont-backend:latest
+        image: ai_saas_business_automation-backend:latest
         ports:
         - containerPort: 3001
         env:
@@ -233,7 +233,7 @@ spec:
     spec:
       containers:
       - name: worker
-        image: pont-worker:latest
+        image: ai_saas_business_automation-worker:latest
         env:
         - name: DATABASE_PASSWORD
           valueFrom:
