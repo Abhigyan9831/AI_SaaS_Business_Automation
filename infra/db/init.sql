@@ -126,3 +126,31 @@ CREATE POLICY tenant_isolation_policy ON orders FOR ALL USING (tenant_id = curre
 CREATE POLICY tenant_isolation_policy ON quotas FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
 CREATE POLICY tenant_isolation_policy ON tasks FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
 CREATE POLICY tenant_isolation_policy ON kb_embeddings FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+
+-- 10. AEO & SEO Monitoring (Advanced Semrush-like features)
+CREATE TABLE site_audits (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    domain TEXT NOT NULL,
+    health_score INTEGER DEFAULT 0,
+    issues_found JSONB DEFAULT '[]',
+    recommendations JSONB DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE rank_tracking (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    keyword TEXT NOT NULL,
+    google_rank INTEGER,
+    perplexity_mention_rate FLOAT, -- Percentage of brand mentions in AI search
+    chatgpt_sentiment TEXT, -- Positive/Neutral/Negative
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Multi-Tenant RLS for new tables
+ALTER TABLE site_audits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rank_tracking ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation_policy ON site_audits FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+CREATE POLICY tenant_isolation_policy ON rank_tracking FOR ALL USING (tenant_id = current_setting('app.current_tenant_id')::UUID);

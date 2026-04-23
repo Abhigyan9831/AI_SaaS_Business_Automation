@@ -124,7 +124,9 @@ app.post('/api/register', async (req, res) => {
       ['content_gen', 5],
       ['cs_chat', 100],
       ['geo_monitoring', 5],
-      ['kb_documents', 3]
+      ['kb_documents', 3],
+      ['aeo_audit', 2],
+      ['site_health', 1]
     ];
     for (const [type, limit] of quotas) {
       await client.query(
@@ -162,6 +164,25 @@ app.post('/api/login', async (req, res) => {
     }
   } catch (err: any) {
     res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// AEO & SEO Monitoring Routes
+app.get('/api/monitoring/audit', authenticate, async (req: any, res) => {
+  try {
+    const result = await req.db.query('SELECT * FROM site_audits ORDER BY created_at DESC LIMIT 10');
+    res.json(result.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/monitoring/ranks', authenticate, async (req: any, res) => {
+  try {
+    const result = await req.db.query('SELECT * FROM rank_tracking ORDER BY created_at DESC LIMIT 50');
+    res.json(result.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -89,5 +89,19 @@ export const api = {
       headers: getAuthHeaders(),
     });
     return res.json();
+  },
+  
+  async getSiteAudit() {
+    const res = await fetch(`${API_URL}/api/monitoring/audit`, {
+      headers: getAuthHeaders(),
+    });
+    return res.json();
+  },
+
+  async getRankTracking() {
+    const res = await fetch(`${API_URL}/api/monitoring/ranks`, {
+      headers: getAuthHeaders(),
+    });
+    return res.json();
   }
 };

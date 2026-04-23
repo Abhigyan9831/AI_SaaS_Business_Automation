@@ -25,18 +25,24 @@ export default function DashboardPage() {
   const [tasks, setTasks]       = useState<any[]>([]);
   const [quotas, setQuotas]     = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [ranks, setRanks]       = useState<any[]>([]);
+  const [audits, setAudits]     = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
 
   const fetchData = async () => {
     try {
-      const [t, u, p] = await Promise.all([
+      const [t, u, p, r, a] = await Promise.all([
         api.getTasks(), 
         api.getUsage(),
-        api.getPaymentHistory()
+        api.getPaymentHistory(),
+        api.getRankTracking(),
+        api.getSiteAudit()
       ]);
       if (Array.isArray(t)) setTasks(t);
       if (Array.isArray(u)) setQuotas(u);
       if (Array.isArray(p)) setPayments(p);
+      if (Array.isArray(r)) setRanks(r);
+      if (Array.isArray(a)) setAudits(a);
     } catch { /* silent */ }
     finally { setLoading(false); }
   };
@@ -205,6 +211,49 @@ export default function DashboardPage() {
               <Link href="/pricing" style={{ marginTop: "auto", textAlign: "center", color: "var(--palette-grey-800)", textDecoration: "underline" }} className="caption">
                 Manage Billing
               </Link>
+            </div>
+
+            {/* Visibility Section */}
+            <div style={{ borderRadius: "var(--shape-corner-lg)", border: "1px solid var(--theme-outline-outline-variant)", background: "var(--palette-grey-10)", padding: "var(--space-xl)", display: "flex", flexDirection: "column", gap: "var(--space-xl)" }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 className="call-to-action--nav" style={{ color: "var(--theme-surface-on-surface)" }}>Search Engine Visibility</h3>
+                <span className="caption" style={{ color: '#34A853', fontWeight: 500 }}>Live Analysis</span>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, paddingBottom: 12, borderBottom: '1px solid var(--theme-outline-outline-variant)' }}>
+                  <span className="caption" style={{ color: 'var(--palette-grey-800)' }}>Keyword</span>
+                  <span className="caption" style={{ color: 'var(--palette-grey-800)', textAlign: 'center' }}>Google Rank</span>
+                  <span className="caption" style={{ color: 'var(--palette-grey-800)', textAlign: 'center' }}>AI Search (AEO)</span>
+                </div>
+                
+                {ranks.length === 0 ? (
+                  <p className="caption" style={{ color: 'var(--palette-grey-800)', textAlign: 'center', padding: '20px 0' }}>No monitoring data available.</p>
+                ) : ranks.map((r, i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, alignItems: 'center' }}>
+                    <span className="caption" style={{ fontWeight: 500 }}>{r.keyword}</span>
+                    <div style={{ textAlign: 'center' }}>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>#{r.google_rank}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <div style={{ flex: 1, height: 4, background: '#eee', borderRadius: 2, maxWidth: 60 }}>
+                        <div style={{ width: `${(r.perplexity_mention_rate || 0) * 100}%`, height: '100%', background: '#3279F9', borderRadius: 2 }} />
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 500 }}>{Math.round((r.perplexity_mention_rate || 0) * 100)}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 'auto', padding: 12, background: 'var(--palette-grey-0)', borderRadius: 8, border: '1px solid var(--theme-outline-outline-variant)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <CheckCircle2 size={14} color="#34A853" />
+                  <span style={{ fontSize: 12, fontWeight: 600 }}>Xia AEO Strategy</span>
+                </div>
+                <p style={{ fontSize: 11, color: 'var(--palette-grey-800)', lineHeight: 1.4 }}>
+                  Recommendation: Your mention rate in Perplexity is low for "{ranks[0]?.keyword || 'core keywords'}". Increase JSON-LD schema density.
+                </p>
+              </div>
             </div>
           </div>
         </main>

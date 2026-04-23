@@ -7,7 +7,7 @@ spec:
   scaleTargetRef:
     name: worker
   minReplicaCount: 1
-  maxReplicaCount: 10
+  maxReplicaCount: 30
   triggers:
   - type: redis
     metadata:
