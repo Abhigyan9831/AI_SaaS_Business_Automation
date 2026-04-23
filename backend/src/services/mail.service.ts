@@ -17,24 +17,39 @@ export class MailService {
 
   async sendWelcomeEmail(email: string, name: string) {
     const html = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <h1 style="color: #000;">Welcome to PONT AI</h1>
-        <p>Hi ${name},</p>
-        <p>Your PONT GEO instance has been successfully deployed. You are now on a <strong>30-day Free Trial</strong>.</p>
-        <div style="background: #f4f4f4; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0;"><strong>Next steps:</strong></p>
-          <ul>
-            <li>Upload your knowledge base documents.</li>
-            <li>Define your first 5 GEO keywords.</li>
-            <li>Connect your social/chat platforms.</li>
+      <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a; padding: 40px 20px; background-color: #ffffff;">
+        <div style="text-align: center; margin-bottom: 40px;">
+          <div style="display: inline-block; width: 48px; height: 48px; background: #000; border-radius: 12px; line-height: 48px; color: #fff; font-size: 24px; font-weight: bold;">P</div>
+          <h1 style="font-size: 24px; font-weight: 700; margin-top: 16px; letter-spacing: -0.02em;">Welcome to PONT AI</h1>
+        </div>
+        
+        <p style="font-size: 16px; line-height: 1.6; color: #4b5563;">Hi ${name},</p>
+        <p style="font-size: 16px; line-height: 1.6; color: #4b5563;">Your PONT GEO instance has been successfully deployed. We've initiated your <strong>30-day Free Trial</strong> with full access to the Xia worker nodes.</p>
+        
+        <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 32px; border-radius: 16px; margin: 32px 0;">
+          <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; margin-top: 0; margin-bottom: 16px;">Getting Started</h3>
+          <ul style="padding-left: 20px; color: #4b5563; line-height: 1.8;">
+            <li>Ingest your first Knowledge Base document.</li>
+            <li>Configure your GEO Keyword monitoring.</li>
+            <li>Connect your external platform webhooks.</li>
           </ul>
         </div>
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login" style="background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Go to Console</a>
-        <p style="margin-top: 40px; font-size: 12px; color: #888;">© 2026 PONT AI · Generative Engine Optimization</p>
+        
+        <div style="text-align: center; margin: 40px 0;">
+          <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login" style="background: #000; color: #fff; padding: 16px 32px; text-decoration: none; border-radius: 100px; font-weight: 600; display: inline-block; font-size: 14px;">Access Your Console</a>
+        </div>
+        
+        <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 40px 0;" />
+        
+        <p style="font-size: 12px; color: #9ca3af; text-align: center; line-height: 1.5;">
+          © 2026 PONT AI Control Plane<br />
+          Modern Generative Engine Optimization<br />
+          <a href="#" style="color: #6b7280; text-decoration: underline;">Unsubscribe</a> or <a href="#" style="color: #6b7280; text-decoration: underline;">Update Preferences</a>
+        </p>
       </div>
     `;
 
-    await this.send('Welcome to PONT AI', email, html);
+    await this.send('Welcome to PONT AI: Deployment Successful', email, html);
   }
 
   async sendSubscriptionActiveEmail(email: string, plan: string) {

@@ -99,23 +99,53 @@ const authenticate = async (req: express.Request, res: express.Response, next: e
 
 app.post('/api/register', async (req, res) => {
   const { companyName, industry, orgSize, email, phone, password } = req.body;
+  const client = await pool.connect();
   try {
+    await client.query('BEGIN');
+    
     const hashedPassword = await bcrypt.hash(password, 12);
-    const tenant = await tenantService.createTenant(companyName, industry, orgSize);
-    const userRes = await pool.query(
+    
+    // Create Tenant
+    const tenantRes = await client.query(
+      'INSERT INTO tenants (company_name, industry, org_size, status) VALUES ($1, $2, $3, $4) RETURNING *',
+      [companyName, industry, orgSize, 'trial']
+    );
+    const tenant = tenantRes.rows[0];
+
+    // Create Admin User
+    const userRes = await client.query(
       'INSERT INTO users (tenant_id, email, phone, password_hash, full_name) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, role',
       [tenant.id, email, phone, hashedPassword, companyName]
     );
     const user = userRes.rows[0];
+
+    // Initialize Quotas
+    const quotas = [
+      ['content_gen', 5],
+      ['cs_chat', 100],
+      ['geo_monitoring', 5],
+      ['kb_documents', 3]
+    ];
+    for (const [type, limit] of quotas) {
+      await client.query(
+        'INSERT INTO quotas (tenant_id, resource_type, total, used) VALUES ($1, $2, $3, 0)',
+        [tenant.id, type, limit]
+      );
+    }
+
+    await client.query('COMMIT');
     
-    // 📩 Send Welcome Email (fire-and-forget — never block registration)
+    // 📩 Send Welcome Email (fire-and-forget)
     mailService.sendWelcomeEmail(email, companyName).catch(e => console.error('[Mail] Welcome email failed:', e));
 
     const token = authService.generateToken({ userId: user.id, tenantId: tenant.id, role: user.role });
     res.status(201).json({ tenant, user, token });
   } catch (err: any) {
+    await client.query('ROLLBACK');
     console.error('[Register] Error:', err.message);
     res.status(500).json({ error: err.message || 'Registration failed' });
+  } finally {
+    client.release();
   }
 });
 

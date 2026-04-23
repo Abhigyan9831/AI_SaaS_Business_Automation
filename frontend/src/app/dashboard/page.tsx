@@ -3,14 +3,15 @@
 import { useState, useEffect } from "react";
 import { ArrowUpRight, LayoutDashboard, Database, Activity, Settings, LogOut, Clock, Zap, CreditCard, ShieldCheck, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { api } from "@/lib/api";
 
 const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: "GEO Overview",  active: true  },
-  { icon: Database,        label: "Knowledge Base", active: false },
-  { icon: Activity,        label: "AI Recommendation", active: false },
-  { icon: ShieldCheck,     label: "AI CS Agent",    active: false },
-  { icon: Settings,        label: "Settings",       active: false },
+  { icon: LayoutDashboard, label: "GEO Overview",      href: "/dashboard"       },
+  { icon: Database,        label: "Knowledge Base",    href: "/dashboard/kb"    },
+  { icon: Activity,        label: "AI Recommendation", href: "/dashboard/ai"    },
+  { icon: ShieldCheck,     label: "AI CS Agent",       href: "/dashboard/cs"    },
+  { icon: Settings,        label: "Settings",          href: "/dashboard/settings" },
 ];
 
 const statusColor: Record<string, string> = {
@@ -20,6 +21,7 @@ const statusColor: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  const pathname = usePathname();
   const [tasks, setTasks]       = useState<any[]>([]);
   const [quotas, setQuotas]     = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
@@ -94,20 +96,22 @@ export default function DashboardPage() {
       <div className="dashboard-layout">
         <aside className="dashboard-sidebar">
           <nav style={{ display: "flex", flexDirection: "column" }}>
-            {NAV_ITEMS.map((item) => (
-              <button key={item.label} style={{
-                display: "flex", alignItems: "center", gap: "var(--space-md)",
-                padding: "var(--space-md) var(--space-xl)",
-                background: item.active ? "var(--palette-grey-10)" : "transparent",
-                border: "none", cursor: "pointer", textAlign: "left",
-                borderLeft: item.active ? `2px solid var(--palette-grey-1200)` : "2px solid transparent",
-                color: item.active ? "var(--theme-surface-on-surface)" : "var(--palette-grey-800)",
-                width: "100%",
-              }}>
-                <item.icon size={16} />
-                <span className="call-to-action--nav sidebar-label">{item.label}</span>
-              </button>
-            ))}
+          {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link key={item.label} href={item.href} style={{
+                  display: "flex", alignItems: "center", gap: "var(--space-md)",
+                  padding: "var(--space-md) var(--space-xl)",
+                  background: isActive ? "var(--palette-grey-10)" : "transparent",
+                  borderLeft: isActive ? `2px solid var(--palette-grey-1200)` : "2px solid transparent",
+                  color: isActive ? "var(--theme-surface-on-surface)" : "var(--palette-grey-800)",
+                  width: "100%", textDecoration: "none",
+                }}>
+                  <item.icon size={16} />
+                  <span className="call-to-action--nav sidebar-label">{item.label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </aside>
 
