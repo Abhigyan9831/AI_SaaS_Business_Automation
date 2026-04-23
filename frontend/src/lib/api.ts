@@ -103,5 +103,12 @@ export const api = {
       headers: getAuthHeaders(),
     });
     return res.json();
+  },
+
+  async getAnalytics() {
+    const res = await fetch(`${API_URL}/api/monitoring/analytics`, {
+      headers: getAuthHeaders(),
+    });
+    return res.json();
   }
 };

@@ -27,22 +27,25 @@ export default function DashboardPage() {
   const [payments, setPayments] = useState<any[]>([]);
   const [ranks, setRanks]       = useState<any[]>([]);
   const [audits, setAudits]     = useState<any[]>([]);
+  const [analytics, setAnalytics] = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
 
   const fetchData = async () => {
     try {
-      const [t, u, p, r, a] = await Promise.all([
+      const [t, u, p, r, a, an] = await Promise.all([
         api.getTasks(), 
         api.getUsage(),
         api.getPaymentHistory(),
         api.getRankTracking(),
-        api.getSiteAudit()
+        api.getSiteAudit(),
+        api.getAnalytics()
       ]);
       if (Array.isArray(t)) setTasks(t);
       if (Array.isArray(u)) setQuotas(u);
       if (Array.isArray(p)) setPayments(p);
       if (Array.isArray(r)) setRanks(r);
       if (Array.isArray(a)) setAudits(a);
+      if (Array.isArray(an)) setAnalytics(an);
     } catch { /* silent */ }
     finally { setLoading(false); }
   };
@@ -67,6 +70,11 @@ export default function DashboardPage() {
   }
 
   const live = tasks.filter(t => t.status === "processing").length;
+
+  // SVG Line Graph points calculation
+  const points = analytics.length > 0 
+    ? analytics.map((d, i) => `${(i / Math.max(analytics.length - 1, 1)) * 100},${100 - (d.avg_aeo_rate * 100)}`).join(' ')
+    : "0,100 100,100";
 
   return (
     <main style={{ minHeight: "100vh", background: "var(--theme-surface-surface)", color: "var(--theme-surface-on-surface)", display: "flex", flexDirection: "column" }}>
@@ -148,6 +156,76 @@ export default function DashboardPage() {
                 <p className="heading-3">{s.value}</p>
               </div>
             ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "var(--space-xl)", marginBottom: 'var(--space-xl)' }}>
+            {/* Live Analytics Graph */}
+            <div style={{ borderRadius: "var(--shape-corner-lg)", border: "1px solid var(--theme-outline-outline-variant)", padding: "var(--space-2xl)", background: "var(--palette-grey-10)", display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h3 className="call-to-action--nav" style={{ color: "var(--theme-surface-on-surface)" }}>Search Visibility (30D)</h3>
+                  <p className="caption" style={{ color: 'var(--palette-grey-800)' }}>Aggregated Google vs AI Search mention rates.</p>
+                </div>
+                <div style={{ display: 'flex', gap: 16 }}>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3279F9' }} />
+                      <span style={{ fontSize: 11, fontWeight: 500 }}>AEO Rate</span>
+                   </div>
+                </div>
+              </div>
+
+              <div style={{ height: 200, width: '100%', position: 'relative' }}>
+                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <path
+                    d={`M 0 100 L ${points} L 100 100 Z`}
+                    fill="url(#gradient)"
+                    opacity="0.1"
+                  />
+                  <polyline
+                    fill="none"
+                    stroke="#3279F9"
+                    strokeWidth="1.5"
+                    points={points}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#3279F9" />
+                      <stop offset="100%" stopColor="#3279F9" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                {analytics.length === 0 && (
+                   <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <p className="caption" style={{ color: 'var(--palette-grey-300)' }}>Waiting for crawl data...</p>
+                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* Regional Data */}
+            <div style={{ borderRadius: "var(--shape-corner-lg)", border: "1px solid var(--theme-outline-outline-variant)", background: "var(--palette-grey-10)", padding: "var(--space-xl)", display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <h3 className="call-to-action--nav" style={{ color: "var(--theme-surface-on-surface)" }}>Regional Reach</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {[
+                  { r: 'North America', v: 45, p: 82 },
+                  { r: 'Greater China', v: 32, p: 76 },
+                  { r: 'Europe', v: 18, p: 64 },
+                  { r: 'Southeast Asia', v: 5, p: 45 },
+                ].map((reg, i) => (
+                  <div key={i}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 500 }}>{reg.r}</span>
+                      <span style={{ fontSize: 11, color: 'var(--palette-grey-800)' }}>{reg.v}% views</span>
+                    </div>
+                    <div style={{ height: 4, background: '#eee', borderRadius: 2 }}>
+                      <div style={{ width: `${reg.p}%`, height: '100%', background: 'var(--theme-surface-on-surface)', borderRadius: 2, opacity: 0.8 }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "var(--space-xl)" }}>

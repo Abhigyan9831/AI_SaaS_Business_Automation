@@ -145,6 +145,8 @@ CREATE TABLE rank_tracking (
     google_rank INTEGER,
     perplexity_mention_rate FLOAT, -- Percentage of brand mentions in AI search
     chatgpt_sentiment TEXT, -- Positive/Neutral/Negative
+    region TEXT DEFAULT 'Global', -- New: Regional monitoring
+    views INTEGER DEFAULT 0, -- New: View count from that engine/region
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

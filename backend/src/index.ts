@@ -186,6 +186,23 @@ app.get('/api/monitoring/ranks', authenticate, async (req: any, res) => {
   }
 });
 
+app.get('/api/monitoring/analytics', authenticate, async (req: any, res) => {
+  try {
+    const result = await req.db.query(`
+      SELECT 
+        DATE_TRUNC('day', created_at) as date,
+        AVG(google_rank) as avg_google_rank,
+        AVG(perplexity_mention_rate) as avg_aeo_rate
+      FROM rank_tracking
+      WHERE created_at > NOW() - INTERVAL '30 days'
+      GROUP BY 1 ORDER BY 1 ASC
+    `);
+    res.json(result.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/tasks', authenticate, async (req: any, res) => {
   const { type, payload } = req.body;
   try {
